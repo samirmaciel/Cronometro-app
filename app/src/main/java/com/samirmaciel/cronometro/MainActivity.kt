@@ -80,8 +80,6 @@ class MainActivity : AppCompatActivity() {
                 Log.d("TIMERAPP", "onReceive: Tempo limite")
             }
         }
-
-
     }
 
     override fun onStop() {
