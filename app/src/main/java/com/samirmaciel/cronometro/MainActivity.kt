@@ -70,7 +70,6 @@ class MainActivity : AppCompatActivity() {
             binding.buttonPlayPause.isEnabled = binding.inputTime.text.isNotEmpty()
         }
     }
-
     private val updateTime : BroadcastReceiver = object : BroadcastReceiver(){
         override fun onReceive(context: Context, intent : Intent) {
             time = intent.getDoubleExtra(BroadcastService.TIMER_UPDATE, 0.0)
