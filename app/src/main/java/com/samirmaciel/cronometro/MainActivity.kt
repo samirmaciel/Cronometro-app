@@ -68,9 +68,7 @@ class MainActivity : AppCompatActivity() {
         }
         binding.inputTime.doOnTextChanged { text, start, before, count ->
             binding.buttonPlayPause.isEnabled = binding.inputTime.text.isNotEmpty()
-
         }
-
     }
 
     private val updateTime : BroadcastReceiver = object : BroadcastReceiver(){
