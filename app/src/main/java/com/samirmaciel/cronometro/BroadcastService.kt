@@ -18,11 +18,13 @@ import kotlin.math.roundToInt
 
 class BroadcastService : Service() {
 
-
     private val timer = Timer()
+
+
     private var time : Double = 0.0
     private var timeLimit : Double = 0.0
     private var currentProgress : Long = 0
+    private var currentTimeSet : String = "00:00"
 
     val CHANNEL_ID : String = "22"
     val NOTIFICATION_ID : Int = 4
@@ -31,6 +33,7 @@ class BroadcastService : Service() {
         const val TIMER_UPDATE = "timerUpdate"
         const val TIMER_EXTRA = "timeExtra"
         const val TIME_LIMIT = "timerLimit"
+        const val CURRENT_TIME_SET = "CURRENT_TIME_SET"
         const val SET_TIME = "setTime"
         const val CURRENT_PROGRESS = "currentProgress"
         const val CURRENT_TIME = "currentTime"
@@ -41,50 +44,40 @@ class BroadcastService : Service() {
 
         timeLimit = intent.getDoubleExtra(TIME_LIMIT, 0.0)
         time = intent.getDoubleExtra(CURRENT_TIME, 0.0)
+        currentTimeSet = intent.getStringExtra(CURRENT_TIME_SET).toString()
         currentProgress = intent.getLongExtra(CURRENT_PROGRESS, 0)
         timer.scheduleAtFixedRate(TimerTask(time), 0, 1000)
 
         return START_NOT_STICKY
     }
 
-    private val setTime : BroadcastReceiver = object : BroadcastReceiver(){
-        override fun onReceive(context: Context, intent: Intent) {
-            timeLimit = intent.getDoubleExtra(TIME_LIMIT, 0.0)
-            Log.d("SETTIME", "Time Limit " + timeLimit)
-
-        }
-
-    }
-
-
-
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        registerReceiver(setTime, IntentFilter(MainActivity.TIMER_MAIN))
     }
 
     private inner class TimerTask(private var time : Double) : java.util.TimerTask()
     {
         override fun run() {
-            time++
+
+            time--
             currentProgress++
-            if(time == timeLimit){
+            if(time == 0.0){
                 val intent = Intent(TIMER_UPDATE)
                 intent.putExtra(TIMER_UPDATE, time)
                 intent.putExtra(CURRENT_PROGRESS, currentProgress)
+                intent.putExtra(CURRENT_TIME_SET, currentTimeSet)
                 intent.putExtra(TIME_LIMIT, true)
                 sendBroadcast(intent)
 
             }else{
                 val intent = Intent(TIMER_UPDATE)
                 intent.putExtra(TIMER_UPDATE, time)
+                intent.putExtra(TIME_LIMIT, timeLimit)
+                intent.putExtra(CURRENT_TIME_SET, currentTimeSet)
                 intent.putExtra(CURRENT_PROGRESS, currentProgress)
                 sendBroadcast(intent)
                 callNotification(getTimeStringFromDouble(time))
-                Log.d("TIMERAPP", "TIMERLIMIT" + timeLimit)
-
-                Log.d("TIMERAPP", "TimerTask" + time)
             }
         }
     }

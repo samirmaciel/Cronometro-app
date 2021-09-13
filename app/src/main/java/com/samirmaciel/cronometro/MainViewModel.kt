@@ -11,6 +11,8 @@ class MainViewModel : ViewModel() {
 
     var count : MutableLiveData<Int> = MutableLiveData()
     var time : MutableLiveData<Double> = MutableLiveData()
+    var currentTimeSet : MutableLiveData<String> = MutableLiveData<String>("00:00")
+    var timelimit : MutableLiveData<Double> = MutableLiveData()
 
 
 
