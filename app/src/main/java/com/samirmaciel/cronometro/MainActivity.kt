@@ -1,10 +1,5 @@
 package com.samirmaciel.cronometro
 
-import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,26 +7,17 @@ import android.content.IntentFilter
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.widget.doOnTextChanged
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModelProvider
 import com.samirmaciel.cronometro.databinding.ActivityMainBinding
-import java.lang.Exception
 import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
     var timerStarted : Boolean = false
     lateinit var serviceIntent : Intent
     private var time = 0.0
-
+    private var timeLimit : Double = 0.0
+    private var current_progress : Long = 0
 
 
     lateinit var viewModel: MainViewModel
@@ -39,12 +25,10 @@ class MainActivity : AppCompatActivity() {
     private val binding : ActivityMainBinding get() = _binding!!
 
     companion object {
+        const val PROGRESS_MAIN = "PROGRESS_MAIN"
         const val TIMER_MAIN = "TIMER_MAIN"
+
     }
-
-
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,28 +39,67 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onStart() {
         super.onStart()
 
         binding.buttonPlayPause.setOnClickListener{
-            startPauseTime()
-            binding.inputTime.setText("")
+            if(timeLimit > 0.0){
+                startPauseTime()
+            }else{
+                Toast.makeText(applicationContext, "Adicione tempo limite para a contagem", Toast.LENGTH_SHORT).show()
+            }
+
         }
 
         binding.buttonReset.setOnClickListener{
             resetTime()
         }
-        binding.inputTime.doOnTextChanged { text, start, before, count ->
-            binding.buttonPlayPause.isEnabled = binding.inputTime.text.isNotEmpty()
+
+        binding.buttonAddTime.setOnClickListener{
+            addTimeToLimit()
         }
+
+        binding.buttonRemoveTime.setOnClickListener{
+            removeTimeToLimit()
+        }
+
     }
+
+    private fun removeTimeToLimit() {
+        timeLimit = timeLimit - 10
+        binding.inputTime.setText(getTimeStringFromDouble(timeLimit))
+        val intent = Intent(TIMER_MAIN)
+        intent.putExtra(BroadcastService.TIME_LIMIT, timeLimit)
+        sendBroadcast(intent)
+        binding.progressBar.setMax(timeLimit.roundToInt())
+    }
+
+    private fun addTimeToLimit() {
+        timeLimit = timeLimit + 10
+        binding.inputTime.setText(getTimeStringFromDouble(timeLimit))
+        val intent = Intent(TIMER_MAIN)
+        intent.putExtra(BroadcastService.TIME_LIMIT, timeLimit)
+        sendBroadcast(intent)
+        binding.progressBar.setMax(timeLimit.roundToInt())
+    }
+
     private val updateTime : BroadcastReceiver = object : BroadcastReceiver(){
+        @RequiresApi(Build.VERSION_CODES.N)
         override fun onReceive(context: Context, intent : Intent) {
+
+
             time = intent.getDoubleExtra(BroadcastService.TIMER_UPDATE, 0.0)
+
             binding.textCount.text = getTimeStringFromDouble(time)
-            if(intent.getStringExtra("time") != null){
-                binding.textCount.text = "TEMPO LIMITE"
-                Log.d("TIMERAPP", "onReceive: Tempo limite")
+
+
+            current_progress = intent.getLongExtra(BroadcastService.CURRENT_PROGRESS, 0)
+
+
+            binding.progressBar.setProgress(current_progress.toInt(), true)
+            if(intent.getStringExtra(BroadcastService.TIME_LIMIT) != null){
+                stopService(serviceIntent)
             }
         }
     }
@@ -116,23 +139,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startTimer() {
-        serviceIntent.putExtra(BroadcastService.SET_TIME, binding.inputTime.text.toString().toDouble())
+        serviceIntent.putExtra(BroadcastService.SET_TIME, 50.0)
+        serviceIntent.putExtra(BroadcastService.CURRENT_TIME, time)
+        serviceIntent.putExtra(BroadcastService.CURRENT_PROGRESS, current_progress)
         startService(serviceIntent)
         timerStarted = true
 
     }
 
     private fun stopTimer() {
-
         stopService(serviceIntent)
         timerStarted = false
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun resetTime(){
         stopTimer()
         time = 0.0
+        current_progress = 0
+        timeLimit = 0.0
+        binding.progressBar.setProgress(0, true)
         binding.textCount.setText("00:00")
+        binding.inputTime.setText("00:00")
 
     }
 

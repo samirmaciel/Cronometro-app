@@ -1,7 +1,6 @@
 package com.samirmaciel.cronometro
 
 import android.annotation.SuppressLint
-import android.app.Notification.VISIBILITY_PUBLIC
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -11,13 +10,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import android.os.CountDownTimer
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC
-import androidx.lifecycle.ViewModelProvider
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -26,21 +21,27 @@ class BroadcastService : Service() {
 
     private val timer = Timer()
     private var time : Double = 0.0
-    private var timeLimit : Double = 10.0
+    private var timeLimit : Double = 0.0
+    private var currentProgress : Long = 0
+
     val CHANNEL_ID : String = "22"
     val NOTIFICATION_ID : Int = 4
 
     companion object {
         const val TIMER_UPDATE = "timerUpdate"
         const val TIMER_EXTRA = "timeExtra"
-        const val TIMER_LIMIT = "timerLimit"
+        const val TIME_LIMIT = "timerLimit"
         const val SET_TIME = "setTime"
+        const val CURRENT_PROGRESS = "currentProgress"
+        const val CURRENT_TIME = "currentTime"
     }
 
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
 
         timeLimit = intent.getDoubleExtra(SET_TIME, 0.0)
+        time = intent.getDoubleExtra(CURRENT_TIME, 0.0)
+        currentProgress = intent.getLongExtra(CURRENT_PROGRESS, 0)
         timer.scheduleAtFixedRate(TimerTask(time), 0, 1000)
 
         return START_NOT_STICKY
@@ -48,11 +49,13 @@ class BroadcastService : Service() {
 
     private val setTime : BroadcastReceiver = object : BroadcastReceiver(){
         override fun onReceive(context: Context, intent: Intent) {
-            timeLimit = intent.getDoubleExtra("TIME", 0.0)
-            Log.d("TIMERAPP", "onReceive: " + timeLimit)
+            timeLimit = intent.getDoubleExtra(TIME_LIMIT, 0.0)
+            Log.d("TIMELIMITADD", "onReceive: Time Limit = " + timeLimit)
         }
 
     }
+
+
 
     override fun onCreate() {
         super.onCreate()
@@ -64,22 +67,25 @@ class BroadcastService : Service() {
     {
         override fun run() {
             time++
-            if(time == timeLimit){
+            currentProgress++
+            if(time != timeLimit){
                 val intent = Intent(TIMER_UPDATE)
                 intent.putExtra(TIMER_UPDATE, time)
+                intent.putExtra(CURRENT_PROGRESS, currentProgress)
                 sendBroadcast(intent)
                 callNotification(getTimeStringFromDouble(time))
                 Log.d("TIMERAPP", "TimerTask" + time)
             }else{
                 val intent = Intent(TIMER_UPDATE)
-                intent.putExtra("time", "timerLimit")
+                intent.putExtra(TIMER_UPDATE, time)
+                intent.putExtra(CURRENT_PROGRESS, currentProgress)
+                intent.putExtra(TIME_LIMIT, TIME_LIMIT)
                 sendBroadcast(intent)
-                //stopSelf()
             }
         }
     }
 
-    private fun callNotification(time : String){
+    private fun callNotification(notificationString : String){
 
         val intent = Intent(this, MainActivity::class.java)
         val pedingIntent = PendingIntent.getActivity(this, 0, intent, 0)
@@ -90,7 +96,7 @@ class BroadcastService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(pedingIntent)
             .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setContentText("Tempo : " + time)
+            .setContentText(notificationString)
         val notificationManager : NotificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         startForeground(NOTIFICATION_ID, notification.build())
     }
