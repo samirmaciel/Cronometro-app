@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 class MainViewModel : ViewModel() {
 
     var count : MutableLiveData<Int> = MutableLiveData()
+    var time : MutableLiveData<Double> = MutableLiveData()
 
 
 

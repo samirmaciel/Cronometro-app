@@ -39,7 +39,7 @@ class BroadcastService : Service() {
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
 
-        timeLimit = intent.getDoubleExtra(SET_TIME, 0.0)
+        timeLimit = intent.getDoubleExtra(TIME_LIMIT, 0.0)
         time = intent.getDoubleExtra(CURRENT_TIME, 0.0)
         currentProgress = intent.getLongExtra(CURRENT_PROGRESS, 0)
         timer.scheduleAtFixedRate(TimerTask(time), 0, 1000)
@@ -50,7 +50,8 @@ class BroadcastService : Service() {
     private val setTime : BroadcastReceiver = object : BroadcastReceiver(){
         override fun onReceive(context: Context, intent: Intent) {
             timeLimit = intent.getDoubleExtra(TIME_LIMIT, 0.0)
-            Log.d("TIMELIMITADD", "onReceive: Time Limit = " + timeLimit)
+            Log.d("SETTIME", "Time Limit " + timeLimit)
+
         }
 
     }
@@ -68,19 +69,22 @@ class BroadcastService : Service() {
         override fun run() {
             time++
             currentProgress++
-            if(time != timeLimit){
+            if(time == timeLimit){
+                val intent = Intent(TIMER_UPDATE)
+                intent.putExtra(TIMER_UPDATE, time)
+                intent.putExtra(CURRENT_PROGRESS, currentProgress)
+                intent.putExtra(TIME_LIMIT, true)
+                sendBroadcast(intent)
+
+            }else{
                 val intent = Intent(TIMER_UPDATE)
                 intent.putExtra(TIMER_UPDATE, time)
                 intent.putExtra(CURRENT_PROGRESS, currentProgress)
                 sendBroadcast(intent)
                 callNotification(getTimeStringFromDouble(time))
+                Log.d("TIMERAPP", "TIMERLIMIT" + timeLimit)
+
                 Log.d("TIMERAPP", "TimerTask" + time)
-            }else{
-                val intent = Intent(TIMER_UPDATE)
-                intent.putExtra(TIMER_UPDATE, time)
-                intent.putExtra(CURRENT_PROGRESS, currentProgress)
-                intent.putExtra(TIME_LIMIT, TIME_LIMIT)
-                sendBroadcast(intent)
             }
         }
     }

@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.samirmaciel.cronometro.databinding.ActivityMainBinding
@@ -14,6 +15,7 @@ import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
     var timerStarted : Boolean = false
+    var timerCountDown : Boolean = false
     lateinit var serviceIntent : Intent
     private var time = 0.0
     private var timeLimit : Double = 0.0
@@ -98,8 +100,9 @@ class MainActivity : AppCompatActivity() {
 
 
             binding.progressBar.setProgress(current_progress.toInt(), true)
-            if(intent.getStringExtra(BroadcastService.TIME_LIMIT) != null){
+            if(intent.getBooleanExtra(BroadcastService.TIME_LIMIT, false)){
                 stopService(serviceIntent)
+                Log.d("STOPINGSERVICE", "onReceive: StopService")
             }
         }
     }
@@ -139,7 +142,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startTimer() {
-        serviceIntent.putExtra(BroadcastService.SET_TIME, 50.0)
+        serviceIntent.putExtra(BroadcastService.TIME_LIMIT, timeLimit)
+        serviceIntent.putExtra(BroadcastService.SET_TIME, time)
         serviceIntent.putExtra(BroadcastService.CURRENT_TIME, time)
         serviceIntent.putExtra(BroadcastService.CURRENT_PROGRESS, current_progress)
         startService(serviceIntent)
