@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -19,6 +20,7 @@ import kotlin.math.roundToInt
 class BroadcastService : Service() {
 
     private val timer = Timer()
+
 
 
     private var time : Double = 0.0
@@ -79,7 +81,8 @@ class BroadcastService : Service() {
     private fun callNotification(notificationString : String){
 
         val intent = Intent(this, MainActivity::class.java)
-        val pedingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+        intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+        val pedingIntent = PendingIntent.getActivity(applicationContext, 0, intent, 0)
 
         var notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_sports_soccer_24)
@@ -97,7 +100,7 @@ class BroadcastService : Service() {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             val name = "NotificationChannel"
             val descriptionText = "Canal de notificações"
-            val importance = NotificationManager.IMPORTANCE_MAX
+            val importance = NotificationManager.IMPORTANCE_LOW
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
@@ -121,9 +124,11 @@ class BroadcastService : Service() {
     }
 
     override fun onDestroy() {
+        super.onDestroy()
+        Log.d("SERVIVE", "onDestroy: SERVICE")
         stopForeground(true)
         timer.cancel()
-        super.onDestroy()
+
 
     }
 

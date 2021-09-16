@@ -22,6 +22,8 @@ class MainActivity : AppCompatActivity() {
     private var timeLimit : Double = 0.0
     private var current_progress : Long = 0
 
+
+    private val MAINLOG = "MAINLOG"
     private val viewModel: MainViewModel by viewModels()
     private var _binding : ActivityMainBinding? = null
     private val binding : ActivityMainBinding get() = _binding!!
@@ -33,7 +35,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("MAIN1", "onCreate: ")
+        Log.d(MAINLOG, "onCreate: ")
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         serviceIntent = Intent(applicationContext, BroadcastService::class.java)
@@ -167,21 +169,21 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         unregisterReceiver(updateTime)
-        Log.d("MAIN", "onStop: ")
+        Log.d(MAINLOG, "onStop: ")
     }
 
 
     override fun onResume() {
         super.onResume()
-        Log.d("MAIN", "onResume: ")
+        Log.d(MAINLOG, "onResume: ")
         registerReceiver(updateTime, IntentFilter(BroadcastService.TIMER_UPDATE))
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("MAIN", "onDestroy: ")
-        unregisterReceiver(updateTime)
+        Log.d(MAINLOG, "onDestroy: ")
         stopService(serviceIntent)
+        unregisterReceiver(updateTime)
         _binding = null
 
     }
