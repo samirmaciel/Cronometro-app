@@ -26,17 +26,15 @@ class BroadcastService : Service() {
     private var currentProgress : Long = 0
     private var currentTimeSet : String = "00:00"
 
-    val CHANNEL_ID : String = "22"
+    val CHANNEL_ID : String = "COUNTDOWN_CHANNEL"
     val NOTIFICATION_ID : Int = 4
 
     companion object {
-        const val TIMER_UPDATE = "timerUpdate"
-        const val TIMER_EXTRA = "timeExtra"
-        const val TIME_LIMIT = "timerLimit"
+        const val TIMER_UPDATE = "TIMEUPDATE"
+        const val TIME_LIMIT = "TIMERLIMIT"
         const val CURRENT_TIME_SET = "CURRENT_TIME_SET"
-        const val SET_TIME = "setTime"
-        const val CURRENT_PROGRESS = "currentProgress"
-        const val CURRENT_TIME = "currentTime"
+        const val CURRENT_PROGRESS = "CURRENTPROGRESS"
+        const val CURRENT_TIME = "CURRENTTIME"
     }
 
 
@@ -47,21 +45,17 @@ class BroadcastService : Service() {
         currentTimeSet = intent.getStringExtra(CURRENT_TIME_SET).toString()
         currentProgress = intent.getLongExtra(CURRENT_PROGRESS, 0)
         timer.scheduleAtFixedRate(TimerTask(time), 0, 1000)
+        createNotificationChannel()
 
         return START_NOT_STICKY
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-        createNotificationChannel()
     }
 
     private inner class TimerTask(private var time : Double) : java.util.TimerTask()
     {
         override fun run() {
-
             time--
             currentProgress++
+
             if(time == 0.0){
                 val intent = Intent(TIMER_UPDATE)
                 intent.putExtra(TIMER_UPDATE, time)
@@ -98,10 +92,8 @@ class BroadcastService : Service() {
         startForeground(NOTIFICATION_ID, notification.build())
     }
 
-
     @SuppressLint("WrongConstant")
     private fun createNotificationChannel(){
-
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             val name = "NotificationChannel"
             val descriptionText = "Canal de notificações"

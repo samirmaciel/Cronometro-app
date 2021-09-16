@@ -33,6 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("MAIN1", "onCreate: ")
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         serviceIntent = Intent(applicationContext, BroadcastService::class.java)
@@ -164,19 +165,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        unregisterReceiver(updateTime)
         super.onStop()
+        unregisterReceiver(updateTime)
+        Log.d("MAIN", "onStop: ")
     }
+
 
     override fun onResume() {
         super.onResume()
+        Log.d("MAIN", "onResume: ")
         registerReceiver(updateTime, IntentFilter(BroadcastService.TIMER_UPDATE))
     }
 
     override fun onDestroy() {
-        unregisterReceiver(updateTime)
-        _binding = null
         super.onDestroy()
+        Log.d("MAIN", "onDestroy: ")
+        unregisterReceiver(updateTime)
+        stopService(serviceIntent)
+        _binding = null
 
     }
 
